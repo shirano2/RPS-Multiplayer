@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>RockPaperScissors</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/4.12.0/firebase.js"></script>
+    <!-- <script src="assets/javascript/gif.js"></script> -->
+    <link rel="stylesheet" href="assets/css/reset.css">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<script>
+$(document).ready(function() {
+    var config = {
+        apiKey: "AIzaSyBK-MOi5GY5bmYoBfkY--6wKb6DYb-ecR4",
+        authDomain: "rps-multiplayer-c905e.firebaseapp.com",
+        databaseURL: "https://rps-multiplayer-c905e.firebaseio.com",
+        projectId: "rps-multiplayer-c905e",
+        storageBucket: "rps-multiplayer-c905e.appspot.com",
+        messagingSenderId: "549481676082"
+    };
+    firebase.initializeApp(config);
+    var database = firebase.database();
+
+    var connection=database.ref("/game");
+    var connectionChat=database.ref("/chat");
+    var connectionsRef = database.ref("/connections");
+    var connectedRef = database.ref(".info/connected");
+
+    var count=5;
+    var intervalId;
+    var arr=["rock","paper","scissors"];
+    var choose;
+    var yourID;
+
+    function gameStart(){
+        count=5;
+        choose="";
+        intervalId = setInterval(decrement, 1000);
+    }
+    
+    function decrement() {
+        $("#count").text(count+"seconds left");
+        count--;
+        if (count==0) {
+            clearInterval(intervalId);
+            choose=arr[Math.floor(Math.random()*2)];
+            setting(choose);
+        }
+    }
+
+    function setting(choose){
+        if(yourID=="1") {
+            connection.set({  
+	            yourID1: choose
+            });
+        } else {
+            connection.set({  
+	            yourID2: choose
+            });
+        }
+    }
+
+    $("button").on("click", function() { 
+        setting($("button").text());
+        intervalId = setInterval(decrement, 1000);
+    });
+
+    connection.on("value", function(snapshot) {
+        if (snapshot.child("yourID1").exists()&& snapshot.child("yourID2").exists()) {
+            var status=snapshot.val();
+            var string=status.yourID1+status.yourID2;
+            if(string=="RockScissors" || string=="ScissorsPaper" || string=="PaperRock") {
+                $("#waiting").text("Player1 win!!");
+            } else if(string=="RockScissors" || string=="ScissorsPaper" || string=="PaperRock") {
+                $("#waiting").text("Player2 win!!");
+            } 
+        }
+    });
+
+    connectedRef.on("value", function(snapshot) {
+        if (snapshot.val()) {
+            var con = connectionsRef.push(true);
+            con.onDisconnect().remove();
+        }
+    });
+
+    connectionsRef.on("value", function(snapshot) {
+        if(snapshot.numChildren()==1) {
+            yourID="1";
+            console.log(yourID);
+            setting("empty");
+            $("#player2_buttons").hide();
+            $("#waiting").text("Wating the other player.....");
+        } else if(snapshot.numChildren()==2){
+            yourID="2";
+            console.log(yourID);
+            setting("empty");
+            $("#player1_buttons").hide();
+            $("#waiting").text("Let's Play!!!");
+            gameStart();
+        } else {
+            $("#player1_buttons").hide();
+            $("#player2_buttons").hide();
+            $("#waiting").text("There are too many people playing game. Please wait..");
+        }
+    });
+
+});
+
+
+
+
+
+</script>
+<body>
+    <div id="player1">
+        <img id="player1_img" src="">
+        <div id="player1_buttons">
+            <button id="player1_rock">Rock</button>
+            <button id="player1_paper">Paper</button>
+            <button id="player1_scissors">Scissors</button>
+        </div>
+    </div>
+    <div id="player2">
+        <img id="player2_img" src="">
+        <div id="player2_buttons">
+            <button id="player2_rock">Rock</button>
+            <button id="player2_paper">Paper</button>
+            <button id="player2_scissors">Scissors</button>
+        </div>
+        
+    </div>
+
+    <div id="waiting"></div>
+    <div id="count"></div>
+
+    <div id="chatting"></div>
+    
+</body>
+</html>
