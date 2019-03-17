@@ -24,7 +24,10 @@ $(document).ready(function() {
     firebase.initializeApp(config);
     var database = firebase.database();
 
-    var connection=database.ref("/game");
+    var connection=database.ref("/gameUser");
+    var connection1=database.ref("/user1");
+    var connection2=database.ref("/user2");
+    var connectionResult=database.ref("/result");
     var connectionChat=database.ref("/chat");
     var connectionsRef = database.ref("/connections");
     var connectedRef = database.ref(".info/connected");
@@ -33,9 +36,77 @@ $(document).ready(function() {
     var intervalId;
     var arr=["rock","paper","scissors"];
     var choose;
-    var yourID;
+    var yourID="";
+    var string1="";
+    var string2="";
+    var con;
+    var con2;
+    var onGame="false";
+
+    connectedRef.on("value", function(snapshot) {
+        if (snapshot.val()) {
+            con = connectionsRef.push(true);
+            con.onDisconnect().remove();
+        }
+    });
+
+    connectionsRef.on("value", function(snapshot) {
+        if(yourID=="") {
+            con2=connection.push(true);
+        }
+        con2.onDisconnect().remove(); 
+    });
+
+    connection.on("value",function(snapshot){
+        if(snapshot.numChildren()==1) {
+            if(yourID==""){
+                yourID="1";
+            } else if(yourID=="2") {
+                yourID="1";
+            }
+            setting("empty");
+            $("#waiting").text("");
+            $("#player1").show();
+            $("#player1_buttons").show();
+            $("#player2_buttons").hide();
+            $("#waiting").text("Wating the other player.....");
+            $("#identity_player1").text("player1 : you");
+            $("#identity_player2").text("player2 : enemy");
+        } 
+        if(snapshot.numChildren()==2) {
+            if(yourID=="") {
+                yourID="2";
+                $("#waiting").text("");
+                $("#player2").show();
+                $("#player2_buttons").show();
+                $("#player1_buttons").hide();
+                setting("empty");
+                $("#identity_player1").text("player1 : enemy");
+                $("#identity_player2").text("player2 : you");
+            } 
+            if(yourID=="1" || yourID=="2") {
+                if(onGame=="false") {
+                    onGame="true";
+                    gameStart();
+                }
+                
+            }
+        }
+        if(snapshot.numChildren()>2) {
+            if(yourID=="") {
+                yourID="3";
+                $("#player1_buttons").hide();
+                $("#player2_buttons").hide();
+                $("#waiting").text("There are too many people playing game. Please wait..");
+                con2.remove();
+                
+            } 
+        }
+    });
 
     function gameStart(){
+        $("#waiting").text("Let's Play!!!");
+        $("#restart").hide();
         count=5;
         choose="";
         intervalId = setInterval(decrement, 1000);
@@ -44,7 +115,7 @@ $(document).ready(function() {
     function decrement() {
         $("#count").text(count+"seconds left");
         count--;
-        if (count==0) {
+        if (count<0) {
             clearInterval(intervalId);
             choose=arr[Math.floor(Math.random()*2)];
             setting(choose);
@@ -53,60 +124,69 @@ $(document).ready(function() {
 
     function setting(choose){
         if(yourID=="1") {
-            connection.set({  
-	            yourID1: choose
+            connection1.set({  
+	            yourID: choose
             });
-        } else {
-            connection.set({  
-	            yourID2: choose
+        } else if(yourID=="2") {
+            connection2.set({  
+	            yourID: choose
             });
         }
     }
 
     $("button").on("click", function() { 
-        setting($("button").text());
-        intervalId = setInterval(decrement, 1000);
-    });
-
-    connection.on("value", function(snapshot) {
-        if (snapshot.child("yourID1").exists()&& snapshot.child("yourID2").exists()) {
-            var status=snapshot.val();
-            var string=status.yourID1+status.yourID2;
-            if(string=="RockScissors" || string=="ScissorsPaper" || string=="PaperRock") {
-                $("#waiting").text("Player1 win!!");
-            } else if(string=="RockScissors" || string=="ScissorsPaper" || string=="PaperRock") {
-                $("#waiting").text("Player2 win!!");
-            } 
-        }
-    });
-
-    connectedRef.on("value", function(snapshot) {
-        if (snapshot.val()) {
-            var con = connectionsRef.push(true);
-            con.onDisconnect().remove();
-        }
-    });
-
-    connectionsRef.on("value", function(snapshot) {
-        if(snapshot.numChildren()==1) {
-            yourID="1";
-            console.log(yourID);
-            setting("empty");
-            $("#player2_buttons").hide();
-            $("#waiting").text("Wating the other player.....");
-        } else if(snapshot.numChildren()==2){
-            yourID="2";
-            console.log(yourID);
-            setting("empty");
-            $("#player1_buttons").hide();
-            $("#waiting").text("Let's Play!!!");
-            gameStart();
+        if($(this).attr("id")=="restart") {
+            location.reload();
         } else {
-            $("#player1_buttons").hide();
-            $("#player2_buttons").hide();
-            $("#waiting").text("There are too many people playing game. Please wait..");
+            setting($("button").text());
+            clearInterval(intervalId);
+        }
+        
+    });
+
+    connection1.on("value", function(snapshot) {
+        if(snapshot.child("yourID").exists()) {
+            string1=snapshot.val().yourID;
+            var result=string1+string2;
+            connectionResult.set({  
+	            result: result
+            });
         }
     });
+
+    connection2.on("value", function(snapshot) {
+        if(snapshot.child("yourID").exists()) {
+            string2=snapshot.val().yourID;
+            var result=string1+string2;
+            connectionResult.set({  
+	            result: result
+            });
+        }
+    });
+
+    connectionResult.on("value", function(snapshot) {
+        if(snapshot.child("result").exists()) {
+            var result=snapshot.val().result;
+            if(result.indexOf("empty")<0) {
+                if(result=="rockscissors" || result=="scissorspaper" || result=="paperrock") {
+                    $("#waiting").text("Player1 win!!");
+                } else if(result=="scissorsrock" || result=="paperscissors" || result=="rockpaper") {
+                    $("#waiting").text("Player2 win!!");
+                } else {
+                    $("#waiting").text("Draw");
+                }
+            }
+            $("#count").empty();
+            $("#restart").show();
+        }
+    });
+    
+    $("#player1").hide();
+    $("#player2").hide();
+
+       
+
+
 
 });
 
@@ -117,6 +197,7 @@ $(document).ready(function() {
 </script>
 <body>
     <div id="player1">
+        <div id="identity_player1"></div>
         <img id="player1_img" src="">
         <div id="player1_buttons">
             <button id="player1_rock">Rock</button>
@@ -125,17 +206,18 @@ $(document).ready(function() {
         </div>
     </div>
     <div id="player2">
+        <div id="identity_player2"></div>
         <img id="player2_img" src="">
         <div id="player2_buttons">
             <button id="player2_rock">Rock</button>
             <button id="player2_paper">Paper</button>
             <button id="player2_scissors">Scissors</button>
         </div>
-        
     </div>
 
     <div id="waiting"></div>
     <div id="count"></div>
+    <div id="res"><button id="restart">Restart</button></div>
 
     <div id="chatting"></div>
     
