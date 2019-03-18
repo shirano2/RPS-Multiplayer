@@ -59,26 +59,23 @@ $(document).ready(function() {
 
     connection.on("value",function(snapshot){
         if(snapshot.numChildren()==1) {
-            if(yourID==""){
+            if(yourID=="3") {
+                $("#waiting").html("quickly press 'Restart' button");
+            } else {
                 yourID="1";
-            } else if(yourID=="2") {
-                yourID="1";
-                onGame="false";
+                $("#player1_buttons").show();
+                $("#player2_buttons").hide();
+                $("#identity_player1").text("player1 : you");
+                $("#identity_player2").text("player2 : enemy");
+                $("#waiting").text("Wating the other player.....");
             }
+            onGame="false";
             setting("empty");
-            $("#waiting").text("");
-            $("#player1").show();
-            $("#player1_buttons").show();
-            $("#player2_buttons").hide();
-            $("#waiting").text("Wating the other player.....");
-            $("#identity_player1").text("player1 : you");
-            $("#identity_player2").text("player2 : enemy");
         } 
         if(snapshot.numChildren()==2) {
             if(yourID=="") {
                 yourID="2";
                 $("#waiting").text("");
-                $("#player2").show();
                 $("#player2_buttons").show();
                 $("#player1_buttons").hide();
                 setting("empty");
@@ -89,8 +86,7 @@ $(document).ready(function() {
                 if(onGame=="false") {
                     onGame="true";
                     gameStart();
-                }
-                
+                } 
             }
         }
         if(snapshot.numChildren()>2) {
@@ -98,9 +94,9 @@ $(document).ready(function() {
                 yourID="3";
                 $("#player1_buttons").hide();
                 $("#player2_buttons").hide();
-                $("#waiting").text("There are too many people playing game. Please wait..");
+                $("#waiting").html("There are too many people playing game. <br> If other players' game is done, quickly press 'Restart' button");
+                $("#restart").hide();
                 con2.remove();
-                
             } 
         }
     });
@@ -146,10 +142,9 @@ $(document).ready(function() {
             });
             $("#chatMessage").val("");
             conChat.onDisconnect().remove();
-           
         }
         else {
-            setting($("button").text());
+            setting($(this).text());
             clearInterval(intervalId);
         }
     });
@@ -187,21 +182,21 @@ $(document).ready(function() {
         if(snapshot.child("result").exists()) {
             var result=snapshot.val().result;
             if(result.indexOf("empty")<0) {
-                $("#count").text("player1:"+string1+", player2:"+string2)
+                $("#count").text("player1:"+string1+", player2:"+string2+".")
                 if(result=="rockscissors" || result=="scissorspaper" || result=="paperrock") {
-                    $("#count").append("   Player1 win!!");
+                    $("#count").append("<br>Player1 win!!");
                 } else if(result=="scissorsrock" || result=="paperscissors" || result=="rockpaper") {
-                    $("#count").append("   Player2 win!!");
+                    $("#count").append("<br>Player2 win!!");
                 } else {
-                    $("#count").append("   Draw!!");
+                    $("#count").append("<br>Draw!!");
                 }
             }
             $("#restart").show();
         }
     });
 
-    $("#player1").hide();
-    $("#player2").hide();
+    $("#player1_buttons").hide();
+    $("#player2_buttons").hide();
 
 });
 </script>
@@ -210,18 +205,18 @@ $(document).ready(function() {
         <div id="identity_player1"></div>
         <img id="player1_img" src="">
         <div id="player1_buttons">
-            <button id="player1_rock">Rock</button>
-            <button id="player1_paper">Paper</button>
-            <button id="player1_scissors">Scissors</button>
+            <button id="player1_rock">rock</button>
+            <button id="player1_paper">paper</button>
+            <button id="player1_scissors">scissors</button>
         </div>
     </div>
     <div id="player2">
         <div id="identity_player2"></div>
         <img id="player2_img" src="">
         <div id="player2_buttons">
-            <button id="player2_rock">Rock</button>
-            <button id="player2_paper">Paper</button>
-            <button id="player2_scissors">Scissors</button>
+            <button id="player2_rock">rock</button>
+            <button id="player2_paper">paper</button>
+            <button id="player2_scissors">scissors</button>
         </div>
     </div>
 
