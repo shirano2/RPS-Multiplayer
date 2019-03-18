@@ -63,6 +63,7 @@ $(document).ready(function() {
                 yourID="1";
             } else if(yourID=="2") {
                 yourID="1";
+                onGame="false";
             }
             setting("empty");
             $("#waiting").text("");
@@ -134,14 +135,32 @@ $(document).ready(function() {
         }
     }
 
-    $("button").on("click", function() { 
+    $("button").on("click", function(event) { 
         if($(this).attr("id")=="restart") {
             location.reload();
-        } else {
+        } else if($(this).attr("id")=="submit"){
+            event.preventDefault();
+            var conChat=connectionChat.push({
+                userID : "player"+yourID,
+                content : $("#chatMessage").val()
+            });
+            $("#chatMessage").val("");
+            conChat.onDisconnect().remove();
+           
+        }
+        else {
             setting($("button").text());
             clearInterval(intervalId);
         }
-        
+    });
+
+    connectionChat.on("child_added", function(snapshot) {
+        var chatID=snapshot.val().userID;
+        if(chatID=="player"+yourID) {
+            chatID=chatID+"(YOU)";
+        }
+        var td=$("<tr>").text(chatID+":"+snapshot.val().content);
+        $("table").append(td);
     });
 
     connection1.on("value", function(snapshot) {
@@ -168,32 +187,23 @@ $(document).ready(function() {
         if(snapshot.child("result").exists()) {
             var result=snapshot.val().result;
             if(result.indexOf("empty")<0) {
+                $("#count").text("player1:"+string1+", player2:"+string2)
                 if(result=="rockscissors" || result=="scissorspaper" || result=="paperrock") {
-                    $("#waiting").text("Player1 win!!");
+                    $("#count").append("   Player1 win!!");
                 } else if(result=="scissorsrock" || result=="paperscissors" || result=="rockpaper") {
-                    $("#waiting").text("Player2 win!!");
+                    $("#count").append("   Player2 win!!");
                 } else {
-                    $("#waiting").text("Draw");
+                    $("#count").append("   Draw!!");
                 }
             }
-            $("#count").empty();
             $("#restart").show();
         }
     });
-    
+
     $("#player1").hide();
     $("#player2").hide();
 
-       
-
-
-
 });
-
-
-
-
-
 </script>
 <body>
     <div id="player1">
@@ -217,9 +227,15 @@ $(document).ready(function() {
 
     <div id="waiting"></div>
     <div id="count"></div>
-    <div id="res"><button id="restart">Restart</button></div>
+    <div><button id="restart">Restart</button></div>
 
-    <div id="chatting"></div>
+    <div id="chat">
+        <table></table>
+        <form>
+            <input id="chatMessage" type="text">
+            <button id="submit">Send</button>
+        </form>
+    </div>
     
 </body>
 </html>
