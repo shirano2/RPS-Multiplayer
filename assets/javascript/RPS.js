@@ -14,6 +14,7 @@ $(document).ready(function() {
     var connection=database.ref("/gameUser");
     var connection1=database.ref("/user1");
     var connection2=database.ref("/user2");
+    var connectionRestart=database.ref("/restart");
     var connectionResult=database.ref("/result");
     var connectionChat=database.ref("/chat");
     var connectionsRef = database.ref("/connections");
@@ -29,6 +30,8 @@ $(document).ready(function() {
     var con;
     var con2;
     var onGame="false";
+    var win=0;
+    var lose=0;
 
     /* if game starts */
     function gameStart(){
@@ -68,7 +71,11 @@ $(document).ready(function() {
     /* if you press button */
     $("button").on("click", function(event) { 
         if($(this).attr("id")=="restart") { /* when it is restart button */
-            location.reload();
+            if(yourID=="1" || yourID=="2") {
+                connectionRestart.set({reset:"true"});
+            } else {
+                location.reload();
+            }
         } else if($(this).attr("id")=="submit"){ /* when it is chatting button */
             event.preventDefault();
             var conChat=connectionChat.push({
@@ -84,6 +91,24 @@ $(document).ready(function() {
             clearInterval(intervalId);
         }
     });
+
+    /* if restart button is pressed after game */
+    connectionRestart.on("value", function(snapshot) {
+        if(snapshot.val().reset=="true") {
+            if(yourID=="1" || yourID=="2") {
+                $("#player1_img").attr("src","assets/images/player1.jpg");
+                $("#player2_img").attr("src","assets/images/player2.jpg");
+                setting("empty");
+                if(yourID=="1") {
+                    $("#player1_buttons").show();
+                } else {
+                    $("#player2_buttons").show();
+                }
+                gameStart();
+                connectionRestart.set({reset:"false"});
+            }
+        }
+    }); 
 
     /* if status of connecting users are changed */
     connectedRef.on("value", function(snapshot) {
@@ -108,6 +133,10 @@ $(document).ready(function() {
                 $("#waiting").html("Quickly press 'Restart' button!!!!");
             } else { /* set player1 */
                 yourID="1";
+                win=0;
+                lose=0;
+                $("#win").text("Win:"+win);
+                $("#lose").text("Lose:"+lose);
                 $("#player1").show();
                 $("#player2").hide();
                 $("#player1_buttons").show();
@@ -120,9 +149,11 @@ $(document).ready(function() {
             onGame="false";
             setting("empty");
         } 
-        if(snapshot.numChildren()==2) { /* if game room is full (ready to start) */
+        if(snapshot.numChildren()==2) { /* if game room is just full (ready to start) */
             if(yourID=="") {
                 yourID="2"; /* set player2 */
+                $("#win").text("Win:"+win);
+                $("#lose").text("Lose:"+lose);
                 $("#waiting").text("");
                 $("#player1_buttons").hide();
                 $("#player2_buttons").show();
@@ -156,22 +187,26 @@ $(document).ready(function() {
     /* if select of user1 is changed, save the result */
     connection1.on("value", function(snapshot) {
         if(snapshot.child("yourID").exists()) {
-            string1=snapshot.val().yourID;
-            var result=string1+string2;
-            connectionResult.set({  
-	            result: result
-            });
+            if(yourID=="1" || yourID=="2") {
+                string1=snapshot.val().yourID;
+                var result=string1+string2;
+                connectionResult.set({  
+                    result: result
+                });
+            }
         }
     });
 
     /* if select of user2 is changed, save the result */
     connection2.on("value", function(snapshot) {
         if(snapshot.child("yourID").exists()) {
-            string2=snapshot.val().yourID;
-            var result=string1+string2;
-            connectionResult.set({  
-	            result: result
-            });
+            if(yourID=="1" || yourID=="2") {
+                string2=snapshot.val().yourID;
+                var result=string1+string2;
+                connectionResult.set({  
+                    result: result
+                });
+            }
         }
     });
 
@@ -190,11 +225,25 @@ $(document).ready(function() {
                 if(result=="rockscissors" || result=="scissorspaper" || result=="paperrock") {
                     $("#count").append("<br>Player1 win!!");
                     $("#player2_img").attr("src","assets/images/player2_defeated.jpg")
+                    if(yourID=="1") {
+                        win++;
+                    } else if(yourID=="2") {
+                        lose++;
+                    }
                 } else if(result=="scissorsrock" || result=="paperscissors" || result=="rockpaper") {
                     $("#count").append("<br>Player2 win!!");
-                    $("#player1_img").attr("src","assets/images/player1_defeated.jpg")
+                    $("#player1_img").attr("src","assets/images/player1_defeated.jpg");
+                    if(yourID=="2") {
+                        win++;
+                    } else if (yourID=="1") {
+                        lose++;
+                    }
                 } else {
                     $("#count").append("<br>Draw!!");
+                }
+                if(yourID =="1" || yourID=="2") {
+                    $("#win").text("Win:"+win);
+                    $("#lose").text("Lose:"+lose);
                 }
             }
         }

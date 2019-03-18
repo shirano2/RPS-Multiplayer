@@ -74,6 +74,7 @@ tr {
         width:100%;
     }
 }
+
 @media screen and (max-width:1460px) and (min-width:760px) {
     #identity_player1 {
         height:60px;
@@ -104,7 +105,7 @@ tr {
     }
     #game {
         width:95%;
-        height:400px;
+        height:500px;
         margin-left:26px;
     }
     #chat {
