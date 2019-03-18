@@ -7,4 +7,108 @@ body {
     margin:0 auto;
     padding:0;
     background:url("../images/background.jpg") repeat;
+    font-size:23px;
+}
+#game {
+    width:60%;
+    float:left;
+    margin-left:50px;
+}
+#player1 {
+    float:left;
+    width:30%;
+    margin : 20px;
+}
+img {
+    width:100%;
+    margin-top:20px;
+}
+#player1_buttons {
+    width:100%;
+}
+#player1_buttons button {
+    width:30%;
+    font-size:80%;
+}
+#player2 {
+    float:left;
+    width:30%;
+    margin:20px;
+}
+#player2_buttons {
+    width:100%;
+}
+#player2_buttons button {
+    width:30%;
+    font-size:80%;
+}
+#waiting {
+    clear:both;
+}
+#chat {
+    margin-top:20px;
+    width:30%;
+    float:left;
+}
+#chatScreen {
+    overflow:auto;
+}
+table {
+    width:80%;
+    background-color:white;
+    border:1px solid black;
+    font-size:18px;
+}
+tr {
+    height:30px;
+}
+#chatMessage {
+    width:80%;
+}
+
+@media screen and (max-width:1460px) and (min-width:960px) {
+    #player1_buttons button {
+        width:100%;
+    }
+    #player2_buttons button {
+        width:100%;
+    }
+}
+@media screen and (max-width:1460px) and (min-width:760px) {
+    #identity_player1 {
+        height:60px;
+    }
+    #identity_player2 {
+        height:60px;
+    }
+    #player1_buttons button {
+        width:100%;
+    }
+    #player2_buttons button {
+        width:100%;
+    }
+}
+
+@media screen and (max-width:760px) {
+    #identity_player1 {
+        height:60px;
+    }
+    #identity_player2 {
+        height:60px;
+    }
+    #player1_buttons button {
+        width:100%;
+    }
+    #player2_buttons button {
+        width:100%;
+    }
+    #game {
+        width:95%;
+        height:400px;
+        margin-left:26px;
+    }
+    #chat {
+        width:95%;
+        margin:0 auto;
+    }
 }

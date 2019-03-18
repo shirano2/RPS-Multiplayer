@@ -7,230 +7,41 @@
     <title>RockPaperScissors</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/4.12.0/firebase.js"></script>
-    <!-- <script src="assets/javascript/gif.js"></script> -->
+    <script src="assets/javascript/RPS.js"></script>
     <link rel="stylesheet" href="assets/css/reset.css">
     <link rel="stylesheet" href="assets/css/style.css">
 </head>
-<script>
-$(document).ready(function() {
-    var config = {
-        apiKey: "AIzaSyBK-MOi5GY5bmYoBfkY--6wKb6DYb-ecR4",
-        authDomain: "rps-multiplayer-c905e.firebaseapp.com",
-        databaseURL: "https://rps-multiplayer-c905e.firebaseio.com",
-        projectId: "rps-multiplayer-c905e",
-        storageBucket: "rps-multiplayer-c905e.appspot.com",
-        messagingSenderId: "549481676082"
-    };
-    firebase.initializeApp(config);
-    var database = firebase.database();
-
-    var connection=database.ref("/gameUser");
-    var connection1=database.ref("/user1");
-    var connection2=database.ref("/user2");
-    var connectionResult=database.ref("/result");
-    var connectionChat=database.ref("/chat");
-    var connectionsRef = database.ref("/connections");
-    var connectedRef = database.ref(".info/connected");
-
-    var count=5;
-    var intervalId;
-    var arr=["rock","paper","scissors"];
-    var choose;
-    var yourID="";
-    var string1="";
-    var string2="";
-    var con;
-    var con2;
-    var onGame="false";
-
-    connectedRef.on("value", function(snapshot) {
-        if (snapshot.val()) {
-            con = connectionsRef.push(true);
-            con.onDisconnect().remove();
-        }
-    });
-
-    connectionsRef.on("value", function(snapshot) {
-        if(yourID=="") {
-            con2=connection.push(true);
-        }
-        con2.onDisconnect().remove(); 
-    });
-
-    connection.on("value",function(snapshot){
-        if(snapshot.numChildren()==1) {
-            if(yourID=="3") {
-                $("#waiting").html("quickly press 'Restart' button");
-            } else {
-                yourID="1";
-                $("#player1_buttons").show();
-                $("#player2_buttons").hide();
-                $("#identity_player1").text("player1 : you");
-                $("#identity_player2").text("player2 : enemy");
-                $("#waiting").text("Wating the other player.....");
-            }
-            onGame="false";
-            setting("empty");
-        } 
-        if(snapshot.numChildren()==2) {
-            if(yourID=="") {
-                yourID="2";
-                $("#waiting").text("");
-                $("#player2_buttons").show();
-                $("#player1_buttons").hide();
-                setting("empty");
-                $("#identity_player1").text("player1 : enemy");
-                $("#identity_player2").text("player2 : you");
-            } 
-            if(yourID=="1" || yourID=="2") {
-                if(onGame=="false") {
-                    onGame="true";
-                    gameStart();
-                } 
-            }
-        }
-        if(snapshot.numChildren()>2) {
-            if(yourID=="") {
-                yourID="3";
-                $("#player1_buttons").hide();
-                $("#player2_buttons").hide();
-                $("#waiting").html("There are too many people playing game. <br> If other players' game is done, quickly press 'Restart' button");
-                $("#restart").hide();
-                con2.remove();
-            } 
-        }
-    });
-
-    function gameStart(){
-        $("#waiting").text("Let's Play!!!");
-        $("#restart").hide();
-        count=5;
-        choose="";
-        intervalId = setInterval(decrement, 1000);
-    }
-    
-    function decrement() {
-        $("#count").text(count+"seconds left");
-        count--;
-        if (count<0) {
-            clearInterval(intervalId);
-            choose=arr[Math.floor(Math.random()*2)];
-            setting(choose);
-        }
-    }
-
-    function setting(choose){
-        if(yourID=="1") {
-            connection1.set({  
-	            yourID: choose
-            });
-        } else if(yourID=="2") {
-            connection2.set({  
-	            yourID: choose
-            });
-        }
-    }
-
-    $("button").on("click", function(event) { 
-        if($(this).attr("id")=="restart") {
-            location.reload();
-        } else if($(this).attr("id")=="submit"){
-            event.preventDefault();
-            var conChat=connectionChat.push({
-                userID : "player"+yourID,
-                content : $("#chatMessage").val()
-            });
-            $("#chatMessage").val("");
-            conChat.onDisconnect().remove();
-        }
-        else {
-            setting($(this).text());
-            clearInterval(intervalId);
-        }
-    });
-
-    connectionChat.on("child_added", function(snapshot) {
-        var chatID=snapshot.val().userID;
-        if(chatID=="player"+yourID) {
-            chatID=chatID+"(YOU)";
-        }
-        var td=$("<tr>").text(chatID+":"+snapshot.val().content);
-        $("table").append(td);
-    });
-
-    connection1.on("value", function(snapshot) {
-        if(snapshot.child("yourID").exists()) {
-            string1=snapshot.val().yourID;
-            var result=string1+string2;
-            connectionResult.set({  
-	            result: result
-            });
-        }
-    });
-
-    connection2.on("value", function(snapshot) {
-        if(snapshot.child("yourID").exists()) {
-            string2=snapshot.val().yourID;
-            var result=string1+string2;
-            connectionResult.set({  
-	            result: result
-            });
-        }
-    });
-
-    connectionResult.on("value", function(snapshot) {
-        if(snapshot.child("result").exists()) {
-            var result=snapshot.val().result;
-            if(result.indexOf("empty")<0) {
-                $("#count").text("player1:"+string1+", player2:"+string2+".")
-                if(result=="rockscissors" || result=="scissorspaper" || result=="paperrock") {
-                    $("#count").append("<br>Player1 win!!");
-                } else if(result=="scissorsrock" || result=="paperscissors" || result=="rockpaper") {
-                    $("#count").append("<br>Player2 win!!");
-                } else {
-                    $("#count").append("<br>Draw!!");
-                }
-            }
-            $("#restart").show();
-        }
-    });
-
-    $("#player1_buttons").hide();
-    $("#player2_buttons").hide();
-
-});
-</script>
 <body>
-    <div id="player1">
-        <div id="identity_player1"></div>
-        <img id="player1_img" src="">
-        <div id="player1_buttons">
-            <button id="player1_rock">rock</button>
-            <button id="player1_paper">paper</button>
-            <button id="player1_scissors">scissors</button>
+    <div id="game">
+        <div id="player1">
+            <div id="identity_player1"></div>
+            <img id="player1_img" src="assets/images/player1.jpg">
+            <div id="player1_buttons">
+                <button id="player1_rock">rock</button>
+                <button id="player1_paper">paper</button>
+                <button id="player1_scissors">scissors</button>
+            </div>
         </div>
-    </div>
-    <div id="player2">
-        <div id="identity_player2"></div>
-        <img id="player2_img" src="">
-        <div id="player2_buttons">
-            <button id="player2_rock">rock</button>
-            <button id="player2_paper">paper</button>
-            <button id="player2_scissors">scissors</button>
+        <div id="player2">
+            <div id="identity_player2"></div>
+            <img id="player2_img" src="assets/images/player2.jpg">
+            <div id="player2_buttons">
+                <button id="player2_rock">rock</button>
+                <button id="player2_paper">paper</button>
+                <button id="player2_scissors">scissors</button>
+            </div>
         </div>
+        
+        <div id="waiting"></div>
+        <div id="count"></div>
+        <div><button id="restart">Restart</button></div>
     </div>
-
-    <div id="waiting"></div>
-    <div id="count"></div>
-    <div><button id="restart">Restart</button></div>
-
     <div id="chat">
-        <table></table>
+        <div id="chatScreen"><table></table></div>
         <form>
             <input id="chatMessage" type="text">
             <button id="submit">Send</button>
         </form>
     </div>
-    
 </body>
 </html>
