@@ -14,7 +14,7 @@ https://shirano2.github.io/RPS-Multiplayer/
 
 * HTML5
 * CSS3
-* jQuery
+* JQuery
 * Javascript
 * Firebase
 
