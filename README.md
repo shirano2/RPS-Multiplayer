@@ -21,13 +21,24 @@ https://shirano2.github.io/RPS-Multiplayer/
 
 ### Firebase
 
+#### setting
+```
+var config = {
+    ...
+};
+firebase.initializeApp(config);
+var database = firebase.database();
+```
+
+#### Connection setting
+
 ```
 var connection=database.ref("/gameUser");
 var connectionsRef = database.ref("/connections");
 var connectedRef = database.ref(".info/connected");
  ```
  
-#### Disconnect setting
+#### Disconnect user
 
 ```
 connectedRef.on("value", function(snapshot) {
@@ -38,7 +49,7 @@ connectedRef.on("value", function(snapshot) {
 });
 ```
 
-#### Connection setting
+#### Connect user
 
 ```
 connectionsRef.on("value", function() {
